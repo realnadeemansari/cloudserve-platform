@@ -69,7 +69,7 @@ class ECSExecutionRoleStack(Stack):
                             "logs:CreateLogStream",
                             "logs:PutLogEvents"
                         ],
-                        "Resource": ""
+                        "Resource": "*"
                     }
                 ]
             }
