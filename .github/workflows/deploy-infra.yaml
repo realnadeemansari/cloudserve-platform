@@ -26,6 +26,14 @@ jobs:
                   echo "Role ARN length: ${#AWS_ROLE_ARN}"
                   echo "Role ARN prefix: ${AWS_ROLE_ARN:0:68}..."
                 fi
+            - name: Debug GitHub OIDC
+              run: |
+                echo "Repository: $GITHUB_REPOSITORY"
+                echo "Ref: $GITHUB_REF"
+                echo "Branch: $GITHUB_REF_NAME"
+                echo "Event: $GITHUB_EVENT_NAME"
+                echo "Workflow: $GITHUB_WORKFLOW"
+                echo "Environment: sbx"
             - name: Configure AWS credentials
               uses: aws-actions/configure-aws-credentials@v4
               with:
