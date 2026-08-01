@@ -43,6 +43,6 @@ class ECSServiceStack(Stack):
         ssm.StringParameter(
             self,
             "ECSServiceArnParameter",
-            parameter_name=f"/{project_prefix}/ecs/cluster-arn",
+            parameter_name=f"/{project_prefix}/ecs/service-arn",
             string_value=self.ecs_service.attr_service_arn
         )
