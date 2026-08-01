@@ -10,11 +10,11 @@ permissions:
 env:
     PROJECT_PREFIX: csp-sbx
     AWS_REGION: us-east-1
-    ECR_REPOSITORY: $PROJECT_PREFIX-repository
-    ECS_CLUSTER: $PROJECT_PREFIX-ecs-cluster
-    ECS_SERVICE: $PROJECT_PREFIX-ecs-service
-    ECS_TASK_DEFINITION: $PROJECT_PREFIX-ecs-task-definition
-    CONTAINER_NAME: $PROJECT_PREFIX-container
+    ECR_REPOSITORY: csp-sbx-repository
+    ECS_CLUSTER: csp-sbx-ecs-cluster
+    ECS_SERVICE: csp-sbx-ecs-service
+    ECS_TASK_DEFINITION: csp-sbx-ecs-task-definition
+    CONTAINER_NAME: csp-sbx-container
     APP_PATH: ${{ github.workspace }}/application
 
 jobs:
