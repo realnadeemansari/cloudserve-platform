@@ -27,14 +27,30 @@ jobs:
                 role-to-assume: ${{ secrets.AWS_ROLE_ARN }}    
                 aws-region: ${{ env.AWS_REGION }}
           - uses: aws-actions/amazon-ecr-login@v2
+          - name: Check if image already exists
+            id: check-image
+            run: |
+                if aws ecr describe-images \
+                    --repository-name "$ECR_REPOSITORY" \
+                    --image-ids imageTag="${{ github.sha }}" \
+                    --region "$AWS_REGION" > /dev/null 2>&1; then
+                    echo "exists=true" >> "$GITHUB_OUTPUT"
+                    echo "Image ${{ github.sha }} already exists in ECR. Skipping build and push."
+                else
+                    echo "exists=false" >> "$GITHUB_OUTPUT"
+                    echo "Image ${{ github.sha }} does not exist. Building and pushing."
+                fi
           - name: Build Docker image
+            if: steps.check-image.outputs.exists == 'false'
             run: |
                 docker build -t $ECR_REPOSITORY:${{ github.sha }} ${{ env.APP_PATH }}
           - name: Tag Docker image
+            if: steps.check-image.outputs.exists == 'false'
             run: |
                 ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
                 docker tag $ECR_REPOSITORY:${{ github.sha }} $ACCOUNT_ID.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/$ECR_REPOSITORY:${{ github.sha }}
           - name: Push Docker image to ECR
+            if: steps.check-image.outputs.exists == 'false'
             run: |
                 ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
                 docker push $ACCOUNT_ID.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/$ECR_REPOSITORY:${{ github.sha }}
