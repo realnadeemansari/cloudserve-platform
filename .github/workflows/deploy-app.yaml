@@ -30,7 +30,7 @@ jobs:
             id: commit
             run: |
                 COMMIT_SHA=$(git rev-parse HEAD)
-                echo "commit_sha=$COMMIT_SHA" >> "$GITHUB_OUTPUT"
+                echo "sha=$COMMIT_SHA" >> "$GITHUB_OUTPUT"
                 echo "Deployment commit SHA: $COMMIT_SHA"
           - uses: aws-actions/configure-aws-credentials@v4
             with:
