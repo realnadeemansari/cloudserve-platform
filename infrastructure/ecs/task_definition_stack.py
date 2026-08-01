@@ -21,8 +21,8 @@ class ECSTaskDefinitionStack(Stack):
         )
 
         self.container_definitions = ecs.CfnTaskDefinition.ContainerDefinitionProperty(
-            name="app",
-            image="image_uri",
+            name=f"{project_prefix}-container",
+            image=self.image_uri,
             essential=True,
             port_mappings=[
                 ecs.CfnTaskDefinition.PortMappingProperty(

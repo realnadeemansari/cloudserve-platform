@@ -46,7 +46,7 @@ jobs:
                     > task-definition.json
           - name: Update Image
             uses: aws-actions/amazon-ecs-render-task-definition@v1
-            id: task
+            id: login-ecr
             with: 
                 task-definition: task-definition.json
                 container-name: ${{ env.CONTAINER_NAME }}
@@ -54,7 +54,7 @@ jobs:
           - name: Deploy
             uses: aws-actions/amazon-ecs-deploy-task-definition@v2
             with: 
-                task-definition: ${{ steps.task.outputs.task-definition }}
+                task-definition: ${{ steps.login-ecr.outputs.task-definition }}
                 service: ${{ env.ECS_SERVICE }}
                 cluster: ${{ env.ECS_CLUSTER }}
                 wait-for-service-stability: true
