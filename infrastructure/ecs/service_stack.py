@@ -35,7 +35,7 @@ class ECSServiceStack(Stack):
             launch_type="FARGATE",
             network_configuration=ecs.CfnService.NetworkConfigurationProperty(
                 awsvpc_configuration=ecs.CfnService.AwsVpcConfigurationProperty(
-                    subnets=["subnet-12345678", "subnet-87654321"],  # Replace with your subnet IDs
+                    subnets=["subnet-03b8b454d582028e6", "subnet-00a906a5aa180e1e4"],  # Replace with your subnet IDs
                     assign_public_ip="ENABLED"
                 )
             )
