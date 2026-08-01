@@ -1,4 +1,4 @@
-name: Deploy App
+name: App Deploy
 
 on:
     workflow_dispatch:
@@ -21,39 +21,51 @@ jobs:
     deploy:
         runs-on: ubuntu-latest
         steps:
-          - uses: actions/checkout@v4
+          - name: Checkout
+            uses: actions/checkout@v4
+            with:
+                ref: sbx
+                fetch-depth: 1
+          - name: Get Deployment Commit
+            id: commit
+            run: |
+                COMMIT_SHA=$(git rev-parse HEAD)
+                echo "commit_sha=$COMMIT_SHA" >> "$GITHUB_OUTPUT"
+                echo "Deployment commit SHA: $COMMIT_SHA"
           - uses: aws-actions/configure-aws-credentials@v4
             with:
                 role-to-assume: ${{ secrets.AWS_ROLE_ARN }}    
                 aws-region: ${{ env.AWS_REGION }}
-          - uses: aws-actions/amazon-ecr-login@v2
+          - name: Login to ECR
+            id: login-ecr
+            uses: aws-actions/amazon-ecr-login@v2
           - name: Check if image already exists
             id: check-image
             run: |
                 if aws ecr describe-images \
                     --repository-name "$ECR_REPOSITORY" \
-                    --image-ids imageTag="${{ github.sha }}" \
+                    --image-ids imageTag="${{ steps.commit.outputs.sha }}" \
                     --region "$AWS_REGION" > /dev/null 2>&1; then
                     echo "exists=true" >> "$GITHUB_OUTPUT"
-                    echo "Image ${{ github.sha }} already exists in ECR. Skipping build and push."
+                    echo "Image ${{ steps.commit.outputs.sha }} already exists in ECR. Skipping build and push."
                 else
                     echo "exists=false" >> "$GITHUB_OUTPUT"
-                    echo "Image ${{ github.sha }} does not exist. Building and pushing."
+                    echo "Image ${{ steps.commit.outputs.sha }} does not exist. Building and pushing."
                 fi
           - name: Build Docker image
             if: steps.check-image.outputs.exists == 'false'
             run: |
-                docker build -t $ECR_REPOSITORY:${{ github.sha }} ${{ env.APP_PATH }}
+                docker build -t $ECR_REPOSITORY:${{ steps.commit.outputs.sha }} ${{ env.APP_PATH }}
           - name: Tag Docker image
             if: steps.check-image.outputs.exists == 'false'
             run: |
                 ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-                docker tag $ECR_REPOSITORY:${{ github.sha }} $ACCOUNT_ID.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/$ECR_REPOSITORY:${{ github.sha }}
+                docker tag $ECR_REPOSITORY:${{ steps.commit.outputs.sha }} $ACCOUNT_ID.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/$ECR_REPOSITORY:${{ steps.commit.outputs.sha }}
           - name: Push Docker image to ECR
             if: steps.check-image.outputs.exists == 'false'
             run: |
                 ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-                docker push $ACCOUNT_ID.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/$ECR_REPOSITORY:${{ github.sha }}
+                docker push $ACCOUNT_ID.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/$ECR_REPOSITORY:${{ steps.commit.outputs.sha }}
           - name: Download Task Definition
             run: |
                 aws ecs describe-task-definition \
@@ -62,15 +74,15 @@ jobs:
                     > task-definition.json
           - name: Update Image
             uses: aws-actions/amazon-ecs-render-task-definition@v1
-            id: login-ecr
+            id: task-def
             with: 
                 task-definition: task-definition.json
                 container-name: ${{ env.CONTAINER_NAME }}
-                image: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+                image: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ steps.commit.outputs.sha }}
           - name: Deploy
             uses: aws-actions/amazon-ecs-deploy-task-definition@v2
             with: 
-                task-definition: ${{ steps.login-ecr.outputs.task-definition }}
+                task-definition: ${{ steps.task-def.outputs.task-definition }}
                 service: ${{ env.ECS_SERVICE }}
                 cluster: ${{ env.ECS_CLUSTER }}
                 wait-for-service-stability: true
