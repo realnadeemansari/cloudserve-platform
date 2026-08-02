@@ -15,10 +15,16 @@ class ECSTaskDefinitionStack(Stack):
         ) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
-        self.image_uri = ssm.StringParameter.value_for_string_parameter(
+        # Reference the repository URI from SSM without forcing a synth-time lookup.
+        # Using `from_string_parameter_name(...).string_value` returns a token that
+        # will be resolved at deploy time. This avoids synth-time failures when the
+        # parameter does not yet exist (for initial infra deployment).
+        image_param = ssm.StringParameter.from_string_parameter_name(
             self,
+            "ECRRepositoryUriParameter",
             parameter_name=f"/{project_prefix}/ecr/repository-uri"
         )
+        self.image_uri = image_param.string_value
 
         self.container_definitions = ecs.CfnTaskDefinition.ContainerDefinitionProperty(
             name=f"{project_prefix}-container",

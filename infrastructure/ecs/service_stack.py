@@ -24,6 +24,17 @@ class ECSServiceStack(Stack):
             f"/{project_prefix}/ecs/task-definition-arn"
         )
 
+        # Determine desired count safely. Default to 0 to avoid ECS continuously
+        # retrying pull/start when an image isn't available yet. Make this
+        # configurable via CDK context `ecs_desired_count` (e.g. -c ecs_desired_count=1).
+        desired_count = 0
+        ctx = self.node.try_get_context("ecs_desired_count")
+        if ctx is not None:
+            try:
+                desired_count = int(ctx)
+            except Exception:
+                desired_count = 0
+
         # Create an ECS service
         self.ecs_service = ecs.CfnService(
             self,
@@ -31,7 +42,7 @@ class ECSServiceStack(Stack):
             cluster=self.cluster_arn,
             service_name=f"{project_prefix}-ecs-service",
             task_definition=self.task_definition_arn,
-            desired_count=1,
+            desired_count=desired_count,
             launch_type="FARGATE",
             network_configuration=ecs.CfnService.NetworkConfigurationProperty(
                 awsvpc_configuration=ecs.CfnService.AwsVpcConfigurationProperty(
