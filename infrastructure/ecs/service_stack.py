@@ -5,6 +5,8 @@ from aws_cdk import (
 )
 from constructs import Construct
 
+vpc = "vpc-0c0b8a4337a2c13c4"
+
 class ECSServiceStack(Stack):
     def __init__(
             self, 
@@ -35,6 +37,27 @@ class ECSServiceStack(Stack):
             except Exception:
                 desired_count = 0
 
+        self.ecs_security_group = ecs.CfnSecurityGroup(
+            self,
+            "ECSSecurityGroup",
+            group_name=f"{project_prefix}-ecs-sg",
+            vpc_id=vpc,
+            tags=[{
+                "key": "Name",
+                "value": f"{project_prefix}-ecs-sg"
+            }]
+        )
+
+        self.ecs_security_group_rule = ecs.CfnSecurityGroupIngress(
+            self,
+            "ECSSecurityGroupRule",
+            group_id=self.ecs_security_group.attr_group_id,
+            ip_protocol="tcp",
+            from_port=8000,
+            to_port=8000,
+            cidr_ip="0.0.0.0/0"
+        )
+
         # Create an ECS service
         self.ecs_service = ecs.CfnService(
             self,
@@ -47,7 +70,8 @@ class ECSServiceStack(Stack):
             network_configuration=ecs.CfnService.NetworkConfigurationProperty(
                 awsvpc_configuration=ecs.CfnService.AwsVpcConfigurationProperty(
                     subnets=["subnet-03b8b454d582028e6", "subnet-00a906a5aa180e1e4"],  # Replace with your subnet IDs
-                    assign_public_ip="ENABLED"
+                    assign_public_ip="ENABLED",
+                    security_groups=[self.ecs_security_group.ref]
                 )
             )
         )
