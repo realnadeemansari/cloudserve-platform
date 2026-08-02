@@ -1,6 +1,7 @@
 from aws_cdk import (
     Stack,
     aws_ecs as ecs,
+    aws_ec2 as ec2,
     aws_ssm as ssm,
 )
 from constructs import Construct
@@ -37,7 +38,7 @@ class ECSServiceStack(Stack):
             except Exception:
                 desired_count = 0
 
-        self.ecs_security_group = ecs.CfnSecurityGroup(
+        self.ecs_security_group = ec2.CfnSecurityGroup(
             self,
             "ECSSecurityGroup",
             group_name=f"{project_prefix}-ecs-sg",
@@ -48,7 +49,7 @@ class ECSServiceStack(Stack):
             }]
         )
 
-        self.ecs_security_group_rule = ecs.CfnSecurityGroupIngress(
+        self.ecs_security_group_rule = ec2.CfnSecurityGroupIngress(
             self,
             "ECSSecurityGroupRule",
             group_id=self.ecs_security_group.attr_group_id,
