@@ -46,7 +46,8 @@ class ECSServiceStack(Stack):
             tags=[{
                 "key": "Name",
                 "value": f"{project_prefix}-ecs-sg"
-            }]
+            }],
+            group_description="Security group for ECS Fargate service",
         )
 
         self.ecs_security_group_rule = ec2.CfnSecurityGroupIngress(
@@ -56,7 +57,8 @@ class ECSServiceStack(Stack):
             ip_protocol="tcp",
             from_port=8000,
             to_port=8000,
-            cidr_ip="0.0.0.0/0"
+            cidr_ip="0.0.0.0/0",
+            description="Temporary public access to FastAPI"
         )
 
         # Create an ECS service
