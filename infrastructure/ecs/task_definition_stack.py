@@ -22,7 +22,7 @@ class ECSTaskDefinitionStack(Stack):
         image_param = ssm.StringParameter.from_string_parameter_name(
             self,
             "ECRRepositoryUriParameter",
-            parameter_name=f"/{project_prefix}/ecr/repository-uri"
+            string_parameter_name=f"/{project_prefix}/ecr/repository-uri"
         )
         self.image_uri = image_param.string_value
 
