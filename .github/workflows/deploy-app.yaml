@@ -86,3 +86,16 @@ jobs:
                 service: ${{ env.ECS_SERVICE }}
                 cluster: ${{ env.ECS_CLUSTER }}
                 wait-for-service-stability: true
+          - name: Start ECS Service
+            run: |
+                aws ecs update-service \
+                    --cluster ${{ env.ECS_CLUSTER }} \
+                    --service ${{ env.ECS_SERVICE }} \
+                    --desired-count 1 \
+                    --region ${{ env.AWS_REGION }}
+          - name: Wait for ECS Service Stability
+            run: |
+                aws ecs wait services-stable \
+                    --cluster ${{ env.ECS_CLUSTER }} \
+                    --services ${{ env.ECS_SERVICE }} \
+                    --region ${{ env.AWS_REGION }}
