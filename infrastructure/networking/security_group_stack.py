@@ -51,7 +51,16 @@ class SecurityGroupStack(Stack):
             cidr_ip="0.0.0.0/0",
             description="Allow inbound traffic on port 80 (HTTP)"
         )
-
+        self.alb_security_group_rule = ec2.CfnSecurityGroupIngress(
+            self,
+            "ALBHttpsIngress",
+            group_id=self.alb_security_group.attr_group_id,
+            ip_protocol="tcp",
+            from_port=443,
+            to_port=443,
+            cidr_ip="0.0.0.0/0",
+            description="Allow inbound traffic on port 443 (HTTPS)"
+        )
         self.ecs_security_group_rule = ec2.CfnSecurityGroupIngress(
             self,
             "ECSSecurityGroupRule",
