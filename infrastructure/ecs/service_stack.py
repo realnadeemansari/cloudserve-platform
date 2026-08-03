@@ -6,7 +6,7 @@ from aws_cdk import (
 )
 from constructs import Construct
 
-vpc = "vpc-0c0b8a4337a2c13c4"
+
 
 class ECSServiceStack(Stack):
     def __init__(
@@ -14,6 +14,9 @@ class ECSServiceStack(Stack):
             scope: Construct, 
             construct_id: str, 
             project_prefix: str,
+            ecs_security_group: ec2.CfnSecurityGroup,
+            subnet_ids: list[str],
+            target_group,
             **kwargs
         ) -> None:
         super().__init__(scope, construct_id, **kwargs)
@@ -26,40 +29,7 @@ class ECSServiceStack(Stack):
             self,
             f"/{project_prefix}/ecs/task-definition-arn"
         )
-
-        # Determine desired count safely. Default to 0 to avoid ECS continuously
-        # retrying pull/start when an image isn't available yet. Make this
-        # configurable via CDK context `ecs_desired_count` (e.g. -c ecs_desired_count=1).
         desired_count = 0
-        ctx = self.node.try_get_context("ecs_desired_count")
-        if ctx is not None:
-            try:
-                desired_count = int(ctx)
-            except Exception:
-                desired_count = 0
-
-        self.ecs_security_group = ec2.CfnSecurityGroup(
-            self,
-            "ECSSecurityGroup",
-            group_name=f"{project_prefix}-ecs-sg",
-            vpc_id=vpc,
-            tags=[{
-                "key": "Name",
-                "value": f"{project_prefix}-ecs-sg"
-            }],
-            group_description="Security group for ECS Fargate service",
-        )
-
-        self.ecs_security_group_rule = ec2.CfnSecurityGroupIngress(
-            self,
-            "ECSSecurityGroupRule",
-            group_id=self.ecs_security_group.attr_group_id,
-            ip_protocol="tcp",
-            from_port=8000,
-            to_port=8000,
-            cidr_ip="0.0.0.0/0",
-            description="Temporary public access to FastAPI"
-        )
 
         # Create an ECS service
         self.ecs_service = ecs.CfnService(
@@ -70,11 +40,18 @@ class ECSServiceStack(Stack):
             task_definition=self.task_definition_arn,
             desired_count=desired_count,
             launch_type="FARGATE",
+            load_balancers=[
+                ecs.CfnService.LoadBalancerProperty(
+                    container_name=f"{project_prefix}-container",
+                    container_port=8000,
+                    target_group_arn=target_group.ref
+                )
+            ],
             network_configuration=ecs.CfnService.NetworkConfigurationProperty(
                 awsvpc_configuration=ecs.CfnService.AwsVpcConfigurationProperty(
-                    subnets=["subnet-03b8b454d582028e6", "subnet-00a906a5aa180e1e4"],  # Replace with your subnet IDs
+                    subnets=subnet_ids,  # Replace with your subnet IDs
                     assign_public_ip="ENABLED",
-                    security_groups=[self.ecs_security_group.ref]
+                    security_groups=[ecs_security_group.ref]
                 )
             )
         )
