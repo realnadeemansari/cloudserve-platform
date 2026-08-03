@@ -10,6 +10,7 @@ from infrastructure.networking.security_group_stack import SecurityGroupStack
 from infrastructure.alb.alb_stack import ALBStack
 
 app = cdk.App()
+domain_name = "cspnbx.online"
 project_prefix = "csp-sbx"
 vpc_id = "vpc-0c0b8a4337a2c13c4"
 subnet_ids = ["subnet-03b8b454d582028e6", "subnet-00a906a5aa180e1e4"]
