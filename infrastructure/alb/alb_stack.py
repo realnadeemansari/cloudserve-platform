@@ -67,6 +67,35 @@ class ALBStack(Stack):
             )]
         )
 
+        self.https_listener = elbv2.CfnListener(
+            self,
+            "ALBHTTPSListener",
+            load_balancer_arn=self.alb.ref,
+            port=443,
+            protocol="HTTPS",
+            certificates=[
+                elbv2.CfnListener.CertificateProperty(
+                    certificate_arn=ssm.StringParameter.value_for_string_parameter(
+                        self,
+                        f"/{project_prefix}/acm/certificate-arn"
+                    )
+                )
+            ],
+            default_actions=[
+                elbv2.CfnListener.ActionProperty(
+                    type="forward",
+                    forward_config=elbv2.CfnListener.ForwardConfigProperty(
+                        target_groups=[
+                            elbv2.CfnListener.TargetGroupTupleProperty(
+                                target_group_arn=self.target_group.ref,
+                                weight=1
+                            )
+                        ]
+                    )
+                )
+            ]
+        )
+
         # -----------------------------
         # SSM Parameters
         # -----------------------------
