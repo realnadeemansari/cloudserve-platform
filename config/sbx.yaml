@@ -1,0 +1,70 @@
+environment: sbx
+
+env_vars:
+  domain_name: cspnbx.online
+  project_prefix: csp-sbx
+  vpc_id: vpc-0c0b8a4337a2c13c4
+  subnet_ids: 
+    - subnet-03b8b454d582028e6
+    - subnet-00a906a5aa180e1e4
+
+ecs:
+  on: false
+  stacks:
+    - name: ecs_service_stack
+      on: true
+    - name: ecs_cluster_stack
+      on: true
+    - name: ecs_task_definition_stack
+      on: true
+
+ecr:
+  on: true
+  stacks:
+    - name: ecr_repository_stack
+      on: true
+
+eks:
+  on: true
+  stacks:
+    - name: eks_cluster_stack
+      on: true
+    - name: eks_node_group_stack
+      on: true
+    - name: service_stack
+      on: true
+
+iam:
+  on: true
+  stacks:
+    - name: ecs_execution_role_stack
+      on: false
+    - name: ecs_task_role_stack
+      on: false
+    - name: eks_execution_role_stack
+      on: true
+    - name: eks_node_group_role_stack
+      on: true
+
+logs:
+  on: true
+  stacks:
+    - name: ecs_logs_stack
+      on: false
+
+networking:
+  on: true
+  stacks:
+    - name: ecs_security_group_stack
+      on: false
+    - name: eks_security_group_stack
+      on: true
+    - name: alb_security_group_stack
+      on: true
+
+alb:
+  on: true
+  stacks:
+    - name: alb_stack
+      on: true
+    
