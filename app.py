@@ -199,7 +199,6 @@ if config.is_enabled("eks", "eks_cluster_stack"):
         "EKSClusterStack",
         project_prefix=project_prefix,
         stack_name=f"{project_prefix}-eks-cluster",
-        vpc_id=vpc_id,
         subnets_ids=subnet_ids,
         eks_role_arn=eks_execution_role_stack.eks_role.attr_arn
     )
