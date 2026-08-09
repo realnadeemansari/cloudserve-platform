@@ -221,7 +221,7 @@ if config.is_enabled("eks", "eks_pod_identity_association_stack"):
         project_prefix=project_prefix,
         stack_name=f"{project_prefix}-eks-pod-identity-association",
         cluster_name=eks_cluster_stack.cluster.ref,
-        eks_load_balancer_controller_role_arn=eks_load_balancer_controller_role_stack.eks_load_balancer_controller_role.attr_arn
+        eks_load_balancer_controller_role_arn=eks_load_balancer_controller_role_stack.eks_lb_controller_role.attr_arn
     )
 
 app.synth()

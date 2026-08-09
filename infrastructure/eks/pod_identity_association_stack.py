@@ -25,9 +25,9 @@ class EKSPodIdentityAssociationStack(Stack):
             self,
             "AWSLoadBalancerControllerPodIdentity",
             cluster_name=cluster_name,
-            name="aws-load-balancer-controller",
             namespace="kube-system",
-            role_arn=eks_load_balancer_controller_role_arn
+            role_arn=eks_load_balancer_controller_role_arn,
+            service_account="aws-load-balancer-controller",
         )
 
         ssm.StringParameter(
