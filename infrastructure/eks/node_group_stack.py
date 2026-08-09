@@ -35,7 +35,7 @@ class EKSNodeGroupStack(Stack):
             subnets=subnet_ids,
             scaling_config=(
                 eks.CfnNodegroup.ScalingConfigProperty(
-                    min_size=1,
+                    min_size=0,
                     desired_size=0,
                     max_size=2
                 )
