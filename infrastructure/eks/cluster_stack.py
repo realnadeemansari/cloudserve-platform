@@ -11,7 +11,6 @@ class EKSClusterStack(Stack):
         scope: Construct,
         construct_id: str,
         project_prefix: str,
-        vpc_id: str,
         subnets_ids: list[str],
         eks_role_arn: str,
         **kwargs
@@ -41,6 +40,16 @@ class EKSClusterStack(Stack):
                 }
             ]
         )
+
+        self.pod_identity_agent = eks.CfnAddon(
+            self,
+            "EKSClusterPodIdentityAgent",
+            addon_name="eks-pod-identity-agent",
+            cluster_name=self.cluster.ref,
+            resolve_conflicts="OVERWRITE"
+        )
+
+        self.pod_identity_agent.add_dependency(self.cluster)
 
         ssm.StringParameter(
             self,

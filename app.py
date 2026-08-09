@@ -4,12 +4,14 @@ from infrastructure.iam.ecs_task_role_stack import ECSTaskRoleStack
 from infrastructure.iam.ecs_execution_role_stack import ECSExecutionRoleStack
 from infrastructure.iam.eks_execution_role_stack import EKSExecutionRoleStack
 from infrastructure.iam.eks_node_group_role_stack import EKSNodeGroupRoleStack
+from infrastructure.iam.eks_load_balancer_controller_role_stack import EKSLoadBalancerControllerRoleStack
 from infrastructure.ecs.cluster_stack import ECSClusterStack
 from infrastructure.ecs.service_stack import ECSServiceStack
 from infrastructure.ecs.task_definition_stack import ECSTaskDefinitionStack
 from infrastructure.ecr.ecr_stack import ECRRepository
 from infrastructure.eks.cluster_stack import EKSClusterStack
 from infrastructure.eks.node_group_stack import EKSNodeGroupStack
+from infrastructure.eks.pod_identity_association_stack import EKSPodIdentityAssociationStack
 from infrastructure.logs.ecs_log_group_stack import ECSLogGroupStack
 from infrastructure.networking.ecs_security_group_stack import ECSSecurityGroupStack
 from infrastructure.networking.eks_security_group_stack import EKSSecurityGroupStack
@@ -183,6 +185,14 @@ if config.is_enabled("iam", "eks_node_group_role_stack"):
         stack_name=f"{project_prefix}-eks-node-group-role"
     )
 
+if config.is_enabled("iam", "eks_load_balancer_controller_role_stack"):
+    eks_load_balancer_controller_role_stack = EKSLoadBalancerControllerRoleStack(
+        app,
+        "EKSLoadBalancerControllerRoleStack",
+        project_prefix=project_prefix,
+        stack_name=f"{project_prefix}-eks-load-balancer-controller-role"
+    )
+
 if config.is_enabled("eks", "eks_cluster_stack"):
     eks_cluster_stack = EKSClusterStack(
         app,
@@ -203,6 +213,16 @@ if config.is_enabled("eks", "eks_node_group_stack"):
         cluster_name=eks_cluster_stack.cluster.ref,
         subnet_ids=subnet_ids,
         node_role_arn=eks_node_group_role_stack.eks_node_role.attr_arn
+    )
+
+if config.is_enabled("eks", "eks_pod_identity_association_stack"):
+    eks_pod_identity_association_stack = EKSPodIdentityAssociationStack(
+        app,
+        "EKSPodIdentityAssociationStack",
+        project_prefix=project_prefix,
+        stack_name=f"{project_prefix}-eks-pod-identity-association",
+        cluster_name=eks_cluster_stack.cluster.ref,
+        eks_load_balancer_controller_role_arn=eks_load_balancer_controller_role_stack.eks_load_balancer_controller_role.attr_arn
     )
 
 app.synth()
