@@ -31,7 +31,9 @@ eks:
       on: true
     - name: eks_node_group_stack
       on: true
-    - name: service_stack
+    - name: service_stack # Not created yet
+      on: true
+    - name: eks_pod_identity_association_stack
       on: true
 
 iam:
@@ -44,6 +46,8 @@ iam:
     - name: eks_execution_role_stack
       on: true
     - name: eks_node_group_role_stack
+      on: true
+    - name: eks_load_balancer_controller_role_stack
       on: true
 
 logs:
