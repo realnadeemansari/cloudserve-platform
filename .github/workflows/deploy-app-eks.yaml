@@ -1,4 +1,4 @@
-name: App Deploy
+name: App EKS Deploy
 
 on:
     workflow_dispatch:
@@ -11,9 +11,9 @@ env:
     PROJECT_PREFIX: csp-sbx
     AWS_REGION: us-east-1
     ECR_REPOSITORY: csp-sbx-repository
-    ECS_CLUSTER: csp-sbx-ecs-cluster
-    ECS_SERVICE: csp-sbx-ecs-service
-    ECS_TASK_DEFINITION: csp-sbx-ecs-task-definition
+    EKS_CLUSTER: csp-sbx-eks-cluster
+    EKS_SERVICE: csp-sbx-eks-service
+    EKS_TASK_DEFINITION: csp-sbx-eks-task-definition
     CONTAINER_NAME: csp-sbx-container
     APP_PATH: ${{ github.workspace }}/application
 
@@ -66,36 +66,4 @@ jobs:
             run: |
                 ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
                 docker push $ACCOUNT_ID.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/$ECR_REPOSITORY:${{ steps.commit.outputs.sha }}
-          - name: Download Task Definition
-            run: |
-                aws ecs describe-task-definition \
-                    --task-definition ${{ env.ECS_TASK_DEFINITION }} \
-                    --query taskDefinition \
-                    > task-definition.json
-          - name: Update Image
-            uses: aws-actions/amazon-ecs-render-task-definition@v1
-            id: task-def
-            with: 
-                task-definition: task-definition.json
-                container-name: ${{ env.CONTAINER_NAME }}
-                image: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ steps.commit.outputs.sha }}
-          - name: Deploy
-            uses: aws-actions/amazon-ecs-deploy-task-definition@v2
-            with: 
-                task-definition: ${{ steps.task-def.outputs.task-definition }}
-                service: ${{ env.ECS_SERVICE }}
-                cluster: ${{ env.ECS_CLUSTER }}
-                wait-for-service-stability: true
-          - name: Start ECS Service
-            run: |
-                aws ecs update-service \
-                    --cluster ${{ env.ECS_CLUSTER }} \
-                    --service ${{ env.ECS_SERVICE }} \
-                    --desired-count 1 \
-                    --region ${{ env.AWS_REGION }}
-          - name: Wait for ECS Service Stability
-            run: |
-                aws ecs wait services-stable \
-                    --cluster ${{ env.ECS_CLUSTER }} \
-                    --services ${{ env.ECS_SERVICE }} \
-                    --region ${{ env.AWS_REGION }}
+          
