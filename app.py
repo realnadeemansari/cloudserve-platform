@@ -5,6 +5,7 @@ from infrastructure.iam.ecs_execution_role_stack import ECSExecutionRoleStack
 from infrastructure.iam.eks_execution_role_stack import EKSExecutionRoleStack
 from infrastructure.iam.eks_node_group_role_stack import EKSNodeGroupRoleStack
 from infrastructure.iam.eks_load_balancer_controller_role_stack import EKSLoadBalancerControllerRoleStack
+from infrastructure.iam.eks_kubectl_role_stack import EKSKubectlRoleStack
 from infrastructure.ecs.cluster_stack import ECSClusterStack
 from infrastructure.ecs.service_stack import ECSServiceStack
 from infrastructure.ecs.task_definition_stack import ECSTaskDefinitionStack
@@ -12,6 +13,7 @@ from infrastructure.ecr.ecr_stack import ECRRepository
 from infrastructure.eks.cluster_stack import EKSClusterStack
 from infrastructure.eks.node_group_stack import EKSNodeGroupStack
 from infrastructure.eks.pod_identity_association_stack import EKSPodIdentityAssociationStack
+from infrastructure.eks.application_stack import EKSApplicationStack
 from infrastructure.logs.ecs_log_group_stack import ECSLogGroupStack
 from infrastructure.networking.ecs_security_group_stack import ECSSecurityGroupStack
 from infrastructure.networking.eks_security_group_stack import EKSSecurityGroupStack
@@ -42,7 +44,7 @@ ecs_service_stack = None
 eks_node_group_stack = None
 eks_node_group_role_stack = None
 eks_cluster_stack = None
-eks_node_group_stack = None
+eks_application_stack = None
 
 print(config.is_enabled("iam", "ecs_execution_role_stack"), config.is_enabled("ecr", "ecr_repository_stack"))
 
@@ -223,5 +225,24 @@ if config.is_enabled("eks", "eks_pod_identity_association_stack"):
         cluster_name=eks_cluster_stack.cluster.ref,
         eks_load_balancer_controller_role_arn=eks_load_balancer_controller_role_stack.eks_lb_controller_role.attr_arn
     )
+
+if config.is_enabled("eks", "eks_application_stack"):
+    eks_application_stack = EKSApplicationStack(
+        app,
+        "EKSApplicationStack",
+        project_prefix=project_prefix,
+        stack_name=f"{project_prefix}-eks-application",
+        cluster=eks_cluster_stack.cluster,
+        ecr_image_uri=f"{ecr_repository_stack.repository.attr_repository_uri}:latest"
+    )
+
+if config.is_enabled("iam", "eks_kubectl_role_stack"):
+    eks_kubectl_role_stack = EKSKubectlRoleStack(
+            app,
+            "EKSKubectlRoleStack",
+            project_prefix=project_prefix,
+            stack_name=f"{project_prefix}-eks-kubectl-role",
+            cluster=eks_cluster_stack.cluster,
+        )
 
 app.synth()
