@@ -12,6 +12,7 @@ class EKSApplicationStack(Stack):
         project_prefix: str,
         cluster: eks.ICluster,
         ecr_image_uri: str,
+        eks_kubectl_role,
         **kwargs
     ) -> None:
         super().__init__(
@@ -20,11 +21,19 @@ class EKSApplicationStack(Stack):
             **kwargs
         )
 
+        self.imported_cluster = eks.Cluster.from_cluster_attributes(
+            self,
+            "ImportedEKSCluster",
+            cluster_name=cluster.ref,
+            kubectl_role_arn=eks_kubectl_role.attr_arn,
+            cluster_endpoint=cluster.attr_endpoint,
+            cluster_certificate_authority_data=cluster.attr_certificate_authority_data
+        )
         # Create an EKS application stack
         self.eks_application_stack = eks.KubernetesManifest(
             self,
             "EKSApplicationManifest",
-            cluster=cluster,
+            cluster=self.imported_cluster,
             manifest=[
                 {
                     "apiVersion": "apps/v1",

@@ -1,7 +1,7 @@
 from aws_cdk import (
     Stack,
+    Aws,
     aws_iam as iam,
-    aws_eks as eks
 )
 from constructs import Construct
 
@@ -11,7 +11,6 @@ class EKSKubectlRoleStack(Stack):
         scope: Construct,
         construct_id: str,
         project_prefix: str,
-        cluster,
         **kwargs
     ) -> None:
         super().__init__(
@@ -30,7 +29,7 @@ class EKSKubectlRoleStack(Stack):
                     {
                         "Effect": "Allow",
                         "Principal": {
-                            "Service": "lambda.amazonaws.com",
+                            "AWS": f"arn:aws:iam::{Aws.ACCOUNT_ID}:root",
                         },
                         "Action": "sts.AssumeRole"
                     }
@@ -78,19 +77,3 @@ class EKSKubectlRoleStack(Stack):
         self.eks_kubectl_role.managed_policy_arns = [
             "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
         ]
-
-        self.eks_kubectl_access_entry = eks.CfnAccessEntry(
-            self,
-            "EKSKubectlAccessEntry",
-            cluster_name=cluster.ref,
-            principal_arn=self.eks_kubectl_role.attr_arn,
-            type="STANDARD",
-            access_policies=[
-                eks.CfnAccessEntry.AccessPolicyProperty(
-                    policy_arn="arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy",
-                    access_scope=eks.CfnAccessEntry.AccessScopeProperty(
-                        type="cluster"
-                    )
-                )
-            ]
-        )

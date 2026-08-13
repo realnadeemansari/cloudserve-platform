@@ -195,6 +195,14 @@ if config.is_enabled("iam", "eks_load_balancer_controller_role_stack"):
         stack_name=f"{project_prefix}-eks-load-balancer-controller-role"
     )
 
+if config.is_enabled("iam", "eks_kubectl_role_stack"):
+    eks_kubectl_role_stack = EKSKubectlRoleStack(
+            app,
+            "EKSKubectlRoleStack",
+            project_prefix=project_prefix,
+            stack_name=f"{project_prefix}-eks-kubectl-role",
+        )
+
 if config.is_enabled("eks", "eks_cluster_stack"):
     eks_cluster_stack = EKSClusterStack(
         app,
@@ -202,8 +210,10 @@ if config.is_enabled("eks", "eks_cluster_stack"):
         project_prefix=project_prefix,
         stack_name=f"{project_prefix}-eks-cluster",
         subnets_ids=subnet_ids,
-        eks_role_arn=eks_execution_role_stack.eks_role.attr_arn
+        eks_role_arn=eks_execution_role_stack.eks_role.attr_arn,
+        eks_kubectl_role=eks_kubectl_role_stack.eks_kubectl_role
     )
+    eks_cluster_stack.add_dependency(eks_kubectl_role_stack)
 
 if config.is_enabled("eks", "eks_node_group_stack"):
     eks_node_group_stack = EKSNodeGroupStack(
@@ -226,6 +236,7 @@ if config.is_enabled("eks", "eks_pod_identity_association_stack"):
         eks_load_balancer_controller_role_arn=eks_load_balancer_controller_role_stack.eks_lb_controller_role.attr_arn
     )
 
+    
 if config.is_enabled("eks", "eks_application_stack"):
     eks_application_stack = EKSApplicationStack(
         app,
@@ -233,16 +244,10 @@ if config.is_enabled("eks", "eks_application_stack"):
         project_prefix=project_prefix,
         stack_name=f"{project_prefix}-eks-application",
         cluster=eks_cluster_stack.cluster,
-        ecr_image_uri=f"{ecr_repository_stack.repository.attr_repository_uri}:latest"
+        ecr_image_uri=f"{ecr_repository_stack.repository.attr_repository_uri}:latest",
+        eks_kubectl_role=eks_kubectl_role_stack.eks_kubectl_role
     )
-
-if config.is_enabled("iam", "eks_kubectl_role_stack"):
-    eks_kubectl_role_stack = EKSKubectlRoleStack(
-            app,
-            "EKSKubectlRoleStack",
-            project_prefix=project_prefix,
-            stack_name=f"{project_prefix}-eks-kubectl-role",
-            cluster=eks_cluster_stack.cluster,
-        )
+    eks_application_stack.add_dependency(eks_cluster_stack)
+    eks_application_stack.add_dependency(eks_kubectl_role_stack)
 
 app.synth()
