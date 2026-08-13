@@ -32,7 +32,7 @@ eks:
     - name: eks_node_group_stack
       on: true
     - name: eks_application_stack # Not created yet
-      on: false
+      on: true
     - name: eks_pod_identity_association_stack
       on: true
 
