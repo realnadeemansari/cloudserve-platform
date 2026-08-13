@@ -31,7 +31,7 @@ class EKSKubectlRoleStack(Stack):
                         "Principal": {
                             "AWS": f"arn:aws:iam::{Aws.ACCOUNT_ID}:root",
                         },
-                        "Action": "sts.AssumeRole"
+                        "Action": "sts:AssumeRole"
                     }
                 ]
             },
