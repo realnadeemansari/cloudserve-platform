@@ -71,8 +71,8 @@ networking:
       on: false
 
 alb:
-  on: false
+  on: true
   stacks:
     - name: alb_stack
-      on: true
+      on: false
     
