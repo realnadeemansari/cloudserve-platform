@@ -2,6 +2,7 @@ from aws_cdk import (
     Stack,
     aws_eks as eks,
 )
+from aws_cdk.lambda_layer_kubectl_v35 import KubectlV35Layer
 from constructs import Construct
 
 class EKSApplicationStack(Stack):
@@ -21,13 +22,18 @@ class EKSApplicationStack(Stack):
             **kwargs
         )
 
+
         self.imported_cluster = eks.Cluster.from_cluster_attributes(
             self,
             "ImportedEKSCluster",
             cluster_name=cluster.ref,
-            kubectl_role_arn=eks_kubectl_role.attr_arn,
             cluster_endpoint=cluster.attr_endpoint,
-            cluster_certificate_authority_data=cluster.attr_certificate_authority_data
+            cluster_certificate_authority_data=cluster.attr_certificate_authority_data,
+            kubectl_role_arn=eks_kubectl_role.attr_arn,
+            kubectl_layer=KubectlV35Layer(
+                self,
+                "KubectlLayer"
+            ),
         )
         # Create an EKS application stack
         self.eks_application_stack = eks.KubernetesManifest(
