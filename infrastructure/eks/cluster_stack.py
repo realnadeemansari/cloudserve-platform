@@ -28,8 +28,11 @@ class EKSClusterStack(Stack):
             self,
             "EKSCluster",
             name=f"{project_prefix}-eks-cluster",
-            version="1.33",
+            version="1.36",
             role_arn=eks_role_arn,
+            address_config=eks.CfnCluster.AddressConfigProperty(
+                authentication_mode="API_AND_CONFIG_MAP"
+            ),
             resources_vpc_config=eks.CfnCluster.ResourcesVpcConfigProperty(
                 subnet_ids=subnets_ids,
                 endpoint_public_access=True,

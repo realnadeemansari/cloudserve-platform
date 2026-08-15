@@ -36,7 +36,7 @@ class EKSApplicationStack(Stack):
             cluster=self.imported_cluster,
             manifest=[
                 {
-                    "apiVersion": "apps/v1",
+                    "apiVersion": "v1",
                     "kind": "Namespace",
                     "metadata": {
                         "name": f"{project_prefix}-eks-namespace",
