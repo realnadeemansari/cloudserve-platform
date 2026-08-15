@@ -1,5 +1,6 @@
 from aws_cdk import (
     Stack,
+    Aws,
     aws_eks as eks,
     aws_ssm as ssm,
     aws_iam as iam
@@ -12,6 +13,8 @@ class EKSClusterStack(Stack):
         scope: Construct,
         construct_id: str,
         project_prefix: str,
+        user_name: str,
+        github_actions_role_name: str,
         subnets_ids: list[str],
         eks_role_arn: str,
         eks_kubectl_role,
@@ -65,6 +68,41 @@ class EKSClusterStack(Stack):
             access_policies=[
                 eks.CfnAccessEntry.AccessPolicyProperty(
                     policy_arn="arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy",
+                    access_scope=eks.CfnAccessEntry.AccessScopeProperty(
+                        type="cluster"
+                    )
+                )
+            ]
+        )
+
+        self.github_actions_access_entry = eks.CfnAccessEntry(
+            self,
+            "EKSGitHubActionsAccessEntry",
+            cluster_name=self.cluster.ref,
+            principal_arn=f"arn:aws:iam::{Aws.ACCOUNT_ID}:role/{github_actions_role_name}",
+            type="STANDARD",
+            access_policies=[
+                eks.CfnAccessEntry.AccessPolicyProperty(
+                    policy_arn="arn:aws:eks::aws:cluster-access-policy/AmazonEKSEditPolicy",
+                    access_scope=eks.CfnAccessEntry.AccessScopeProperty(
+                        type="namespace",
+                        namespaces=[
+                            f"{project_prefix}-eks-namespace"
+                        ]
+                    )
+                )
+            ]
+        )
+
+        self.user_access_entry = eks.CfnAccessEntry(
+            self,
+            "EKSUserAccessEntry",
+            cluster_name=self.cluster.ref,
+            principal_arn=f"arn:aws:iam::{Aws.ACCOUNT_ID}:user/{user_name}",
+            type="STANDARD",
+            access_policies=[
+                eks.CfnAccessEntry.AccessPolicyProperty(
+                    policy_arn="arn:aws:eks::aws:cluster-access-policy/AmazonEKSViewPolicy",
                     access_scope=eks.CfnAccessEntry.AccessScopeProperty(
                         type="cluster"
                     )

@@ -12,8 +12,8 @@ env:
     AWS_REGION: us-east-1
     ECR_REPOSITORY: csp-sbx-repository
     EKS_CLUSTER: csp-sbx-eks-cluster
-    EKS_SERVICE: csp-sbx-eks-service
-    EKS_TASK_DEFINITION: csp-sbx-eks-task-definition
+    K8S_NAMESPACE: csp-sbx-eks-namespace
+    K8S_DEPLOYMENT: csp-sbx-eks-deployment
     CONTAINER_NAME: csp-sbx-container
     APP_PATH: ${{ github.workspace }}/application
 
@@ -66,4 +66,19 @@ jobs:
             run: |
                 ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
                 docker push $ACCOUNT_ID.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/$ECR_REPOSITORY:${{ steps.commit.outputs.sha }}
+          - name: Setup kubectl
+            uses: azure/setup-kubectl@v4
+            with:
+                version: 'latest'
+          - name: Update kubernetes application deployment
+            run: |
+                ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+                IMAGE_URI="$ACCOUNT_ID.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/$ECR_REPOSITORY:${{ steps.commit.outputs.sha }}"
+                echo "Updating Kubernetes deployment with image: $IMAGE_URI"
+                aws eks update-kubeconfig --name $EKS_CLUSTER --region $AWS_REGION
+                kubectl set image deployment/$K8S_DEPLOYMENT $CONTAINER_NAME=$IMAGE_URI -n $K8S_NAMESPACE
+          - name: Verify deployment rollout status
+            run: |
+                echo "Verifying deployment rollout status..."
+                kubectl rollout status deployment/$K8S_DEPLOYMENT -n $K8S_NAMESPACE
           
