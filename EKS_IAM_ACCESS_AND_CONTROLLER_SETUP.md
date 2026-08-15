@@ -116,7 +116,32 @@ kubectl create serviceaccount aws-load-balancer-controller \
   -n kube-system
 ```
 
-### 5.4 Install the AWS Load Balancer Controller
+### 5.4 Create and attach the IAM policy for the controller
+
+Download the AWS Load Balancer Controller IAM policy and create the managed policy in AWS:
+
+```bash
+curl -O https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v3.5.0/docs/install/iam_policy.json
+
+aws iam create-policy \
+  --policy-name csp-sbx-load-balancer-controller-policy \
+  --policy-document file://iam_policy.json
+
+aws iam get-policy \
+  --policy-arn arn:aws:iam::395435558728:policy/csp-sbx-load-balancer-controller-policy
+
+aws iam attach-role-policy \
+  --role-name csp-sbx-eks-lb-controller-role \
+  --policy-arn arn:aws:iam::395435558728:policy/csp-sbx-load-balancer-controller-policy
+
+aws iam detach-role-policy \
+  --role-name csp-sbx-eks-lb-controller-role \
+  --policy-arn arn:aws:iam::aws:policy/ElasticLoadBalancingFullAccess
+```
+
+This creates the controller IAM policy, confirms it exists, attaches it to the controller role, and removes the broad default `ElasticLoadBalancingFullAccess` policy if needed during the cleanup/transition step.
+
+### 5.5 Install the AWS Load Balancer Controller
 
 If you already created a service account and IAM role for the controller, install it with:
 
@@ -125,6 +150,8 @@ helm install aws-load-balancer-controller \
   eks/aws-load-balancer-controller \
   -n kube-system \
   --set clusterName=csp-sbx-eks-cluster \
+  --set region=us-east-1 \
+  --set vpcId=vpc-0c0b8a4337a2c13c4 \
   --set serviceAccount.create=false \
   --set serviceAccount.name=aws-load-balancer-controller
 ```

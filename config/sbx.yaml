@@ -68,10 +68,10 @@ networking:
     - name: eks_security_group_stack
       on: true
     - name: alb_security_group_stack
-      on: true
+      on: false
 
 alb:
-  on: true
+  on: false
   stacks:
     - name: alb_stack
       on: true
