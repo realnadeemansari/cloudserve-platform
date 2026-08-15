@@ -25,6 +25,8 @@ config = Config("./config/sbx.yaml")
 
 app = cdk.App()
 project_prefix = config.get_env("project_prefix")
+github_actions_role_name = config.get_env("github_actions_role_name")
+user_name = config.get_env("user_name")
 vpc_id = config.get_env("vpc_id")
 subnet_ids = config.get_env("subnet_ids")
 domain_name = config.get_env("domain_name")
@@ -209,6 +211,8 @@ if config.is_enabled("eks", "eks_cluster_stack"):
         "EKSClusterStack",
         project_prefix=project_prefix,
         stack_name=f"{project_prefix}-eks-cluster",
+        user_name=user_name,
+        github_actions_role_name=github_actions_role_name,
         subnets_ids=subnet_ids,
         eks_role_arn=eks_execution_role_stack.eks_role.attr_arn,
         eks_kubectl_role=eks_kubectl_role_stack.eks_kubectl_role
