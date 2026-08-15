@@ -30,7 +30,7 @@ class EKSClusterStack(Stack):
             name=f"{project_prefix}-eks-cluster",
             version="1.36",
             role_arn=eks_role_arn,
-            address_config=eks.CfnCluster.AddressConfigProperty(
+            address_config=eks.CfnCluster.AccessConfigProperty(
                 authentication_mode="API_AND_CONFIG_MAP"
             ),
             resources_vpc_config=eks.CfnCluster.ResourcesVpcConfigProperty(
