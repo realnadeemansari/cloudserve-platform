@@ -102,7 +102,7 @@ class EKSClusterStack(Stack):
             type="STANDARD",
             access_policies=[
                 eks.CfnAccessEntry.AccessPolicyProperty(
-                    policy_arn="arn:aws:eks::aws:cluster-access-policy/AmazonEKSViewPolicy",
+                    policy_arn="arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy",
                     access_scope=eks.CfnAccessEntry.AccessScopeProperty(
                         type="cluster"
                     )
