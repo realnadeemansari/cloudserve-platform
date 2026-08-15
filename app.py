@@ -124,7 +124,6 @@ if config.is_enabled("networking", "eks_security_group_stack"):
         app,
         "EKSSecurityGroupStack",
         project_prefix=project_prefix,
-        alb_security_group=alb_security_group_stack.alb_security_group,
         vpc_id=vpc_id,
         stack_name=f"{project_prefix}-eks-security-group"
     )
